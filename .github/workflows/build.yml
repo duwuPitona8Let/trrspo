@@ -3,6 +3,8 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [ main, master ]
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
@@ -13,19 +15,22 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       
-      - name: Install build tools
+      - name: Install tools
         run: |
           sudo apt update
           sudo apt install -y gcc make
       
-      - name: Run build script
-        run: ./ci/build.sh
+      - name: Build
+        run: |
+          chmod +x ci/build.sh
+          ./ci/build.sh
       
-      - name: Run test script
-        run: ./ci/test.sh
+      - name: Test
+        run: |
+          chmod +x ci/test.sh
+          ./ci/test.sh
       
       - name: Upload binary
         uses: actions/upload-artifact@v4
@@ -39,8 +44,7 @@ jobs:
     needs: build-and-test
     
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       
       - name: Download binary
         uses: actions/download-artifact@v4
@@ -51,10 +55,12 @@ jobs:
       - name: Make binary executable
         run: chmod +x processor
       
-      - name: Run package script
-        run: ./ci/package.sh
+      - name: Create DEB
+        run: |
+          chmod +x ci/package.sh
+          ./ci/package.sh
       
-      - name: Upload DEB package
+      - name: Upload DEB
         uses: actions/upload-artifact@v4
         with:
           name: processor-deb
@@ -67,7 +73,9 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     
     steps:
-      - name: Download DEB package
+      - uses: actions/checkout@v4
+      
+      - name: Download DEB
         uses: actions/download-artifact@v4
         with:
           name: processor-deb
@@ -83,3 +91,6 @@ jobs:
             
             Программа: замена пробелов на самый частый символ
             Вариант: 21
+          draft: false
+          prerelease: false
+          generate_release_notes: true
