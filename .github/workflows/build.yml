@@ -74,6 +74,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - name: List files for debugging
+        run: |
+          ls -la
+          ls -la Dockerfile || echo "Dockerfile not found!"
+      
       - name: Download DEB package
         uses: actions/download-artifact@v4
         with:
@@ -86,14 +91,7 @@ jobs:
       
       - name: Test Docker container
         run: |
-          echo "=== Test 1 ==="
           docker run --rm processor:test "your mama dont likes me she likes every one"
-          echo ""
-          echo "=== Test 2 ==="
-          docker run --rm processor:test "hello world test"
-          echo ""
-          echo "=== Test 3 ==="
-          docker run --rm processor:test "a b c a b a"
       
       - name: Upload Docker image as artifact
         run: |
@@ -112,6 +110,13 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     
     steps:
+      - uses: actions/checkout@v4
+      
+      - name: List files for debugging
+        run: |
+          ls -la
+          ls -la Dockerfile || echo "Dockerfile not found!"
+      
       - name: Download DEB package
         uses: actions/download-artifact@v4
         with:
