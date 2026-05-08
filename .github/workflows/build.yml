@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main, master ]
     tags:
-      - '[0-9]+.[0-9]+.[0-9]+'
+      - '*'
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
@@ -74,11 +74,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: List files for debugging
-        run: |
-          ls -la
-          ls -la Dockerfile || echo "Dockerfile not found!"
-      
       - name: Download DEB package
         uses: actions/download-artifact@v4
         with:
@@ -107,15 +102,10 @@ jobs:
     name: Push Docker Image to GHCR
     runs-on: ubuntu-latest
     needs: deploy
-    if: startsWith(github.ref, 'refs/tags/')
+    if: github.ref_type == 'tag'
     
     steps:
       - uses: actions/checkout@v4
-      
-      - name: List files for debugging
-        run: |
-          ls -la
-          ls -la Dockerfile || echo "Dockerfile not found!"
       
       - name: Download DEB package
         uses: actions/download-artifact@v4
@@ -146,7 +136,7 @@ jobs:
     name: Create Release
     runs-on: ubuntu-latest
     needs: [package, docker-push]
-    if: startsWith(github.ref, 'refs/tags/')
+    if: github.ref_type == 'tag'
     
     steps:
       - uses: actions/checkout@v4
@@ -171,4 +161,3 @@ jobs:
             Docker image: `ghcr.io/${{ github.repository }}:${{ github.ref_name }}`
           draft: false
           prerelease: false
-          generate_release_notes: true
